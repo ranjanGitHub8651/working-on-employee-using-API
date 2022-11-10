@@ -1,38 +1,59 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.encoders import jsonable_encoder
 from db import db
+from typing import List
+from validators import *
+from uuid import UUID
 
 api = FastAPI()
 
-# Getting all employee details 
-@api.get("/")
-def all_employee():
+
+@api.get("/users/")
+def all_user():
     return db
 
 
-# Parameters/Argument API Employee by id
-@api.get("/employee/{employee_id}")
-async def employee_by_id(employee_id: str):
-    return {"employee_id": employee_id}
+@api.get("/user/{user_id}/")
+async def user_by_id(user_id: UUID):
+    for user_obj in db:
+        if (user_obj.id == user_id):
+            return user_obj
+    raise HTTPException(status_code=404, detail="User ID not found.")
 
-"""
-@api.get("/employee/{employee_id}")
-async def employee_by_id2(employee_id: str):
-    for emp_id in db:
-        if (emp_id == employee_id):
-            return db[employee_id]
-    return {"Status":"Employee ID not matched. "}
-"""
 
-# Get Student by name
-@api.get("/Students_by_name/")
-async def StudentID(name: str):
-    for student_id in students:
-        if students[student_id]["First Name"] == name:
-            return students[student_id]
-    return {"Data":"Student details not found."}
-"""
+@api.post("/user/")
+async def insert_user(user: User):
+    db.append(user)
+    return user
+
+
+@api.patch("/user/{user_id}/")
+async def user_update(user_id: UUID, user: UpdateUser):
+    print(user_id)
+    for user_obj in db:
+        print(user_obj.id)
+        if user_obj.id == user_id:
+            print("*************************")
+            data = user_obj.dict()
+            user_model = User(**data)
+            print(user_model)
+            
+            update_data = user.dict(exclude_unset=True)
+            print(update_data)
+            
+            update_user = user_model.copy(update=update_data)
+            user_obj = jsonable_encoder(update_user)
+            print(user_obj)
+            db.append(User(**user_obj))
+            return user_obj
+        else:    
+            raise HTTPException(status_code=404, detail="User ID not exist.")
     
-    
-    
-    
-    
+
+
+# @api.delete("/user/{user_id}/")
+# async def delete_user(user_id: str):
+#     if(user_id not in User):
+#         raise HTTPException(status_code=403, detail="Error in deleteing. ")
+#     del User[user_id]
+#     return {"Message": "User deleted successfully."}

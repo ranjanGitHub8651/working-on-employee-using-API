@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from enum import Enum
 
 
-class Gender(str, Enum):
+class Gender(str):
     MALE = "MALE"
     FEMALE = "FEMALE"
 
@@ -15,6 +15,12 @@ class Role(str, Enum):
     
 class User(BaseModel):
     id: UUID | None = uuid4()
+    first_name: str
+    last_name: str
+    gender: Gender
+    role: Role
+
+class UpdateUser(BaseModel):
     first_name: str
     last_name: str
     gender: Gender
